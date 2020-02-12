@@ -1,24 +1,24 @@
 package org.gnius.hr.repository.model.hr;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.JoinColumn;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.gnius.hr.interfaces.base.enums.SessoEnum;
 import org.gnius.hr.interfaces.base.enums.StatoCivileEnum;
-import org.gnius.hr.repository.model.base.table.Comune;
-import org.gnius.hr.repository.model.base.table.Provincia;
-import org.gnius.hr.repository.model.base.table.Stato;
-import org.gnius.hr.repository.model.base.table.TitoloStudio;
 import org.gnius.hr.repository.model.common.TablePanacheEntity;
 import org.gnius.hr.repository.model.common.TenantPanacheEntity;
 
@@ -108,4 +108,8 @@ public class Persona extends TenantPanacheEntity {
 //	@JoinColumn(name = "uuid")
     public DomicilioPersona domicilio;  	
 	
+	
+	@OneToMany(mappedBy = "persona", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER) 
+	@OrderBy("dtins ASC")
+	public List<ContattoPersona> contatti = new ArrayList<ContattoPersona>();
 }

@@ -2,18 +2,18 @@ package org.gnius.hr.repository.rep.hr;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.Path;
 
 import org.gnius.hr.repository.model.base.table.Comune;
 import org.gnius.hr.repository.model.base.table.Provincia;
-import org.gnius.hr.repository.model.base.table.Regione;
 import org.gnius.hr.repository.model.base.table.Stato;
-import org.gnius.hr.repository.model.base.table.StatoFederato;
 import org.gnius.hr.repository.model.base.table.TitoloStudio;
 import org.gnius.hr.repository.model.common.PanacheFindBuilder;
 import org.gnius.hr.repository.model.common.Search;
+import org.gnius.hr.repository.model.hr.ContattoPersona;
 import org.gnius.hr.repository.model.hr.DomicilioPersona;
 import org.gnius.hr.repository.model.hr.Persona;
 import org.gnius.hr.repository.model.hr.ResidenzaPersona;
@@ -110,6 +110,33 @@ public class PersonaRep extends AbstractTenantRepository<Persona> implements Ten
 			persisted.domicilio.aggiuntive = provided.domicilio.aggiuntive;
 		} else {
 			// TODO Non posso metterla a null !!! 
+		}
+		// Contatti
+		if (provided.contatti != null && provided.contatti.size() > 0) {
+			// Aggiorno tutti i contatti esistenti, presenti anche in provided, e rimuovo quelli assenti.
+			List<ContattoPersona> newList = persisted.contatti.stream().
+				filter(pers_c -> 
+					provided.contatti.stream()
+						.anyMatch(prov_c -> 
+							{ 	if (prov_c.uuid != null && prov_c.uuid.equals(pers_c.uuid)) {
+									pers_c.contatto = prov_c.contatto;
+									pers_c.tipo = prov_c.tipo;
+									return true;
+								}
+								return false;
+							})
+				).collect(Collectors.toList());
+			
+			// Aggiungo tutti i contatti presenti in provided e senza uuid
+			newList.addAll(provided.contatti.stream()
+					.filter(prov_c -> prov_c.uuid == null)							// << Filtro quelli con uuid a null
+					.map(prov_c -> {prov_c.persona = persisted; return prov_c; }) 	// << Imposto persona
+					.collect(Collectors.toList()));									// << ottengo una lista da aggiungere
+					
+			
+			persisted.contatti = newList;
+		} else {
+			persisted.contatti.clear();
 		}
 		
 	}
